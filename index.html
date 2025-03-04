@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro al Evento</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        .hidden {
+            display: none;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registro al Evento</h1>
+        <form id="registroForm">
+            <label for="nombre">Nombre Completo:</label>
+            <input type="text" id="nombre" name="nombre" required>
+
+            <label for="correo">Correo Electrónico:</label>
+            <input type="email" id="correo" name="correo" required>
+
+            <label for="telefono">Número de Teléfono:</label>
+            <input type="tel" id="telefono" name="telefono" required>
+
+            <label for="preferencia">Preferencia de Asistencia:</label>
+            <select id="preferencia" name="preferencia">
+                <option value="mañana">Mañana</option>
+                <option value="tarde">Tarde</option>
+                <option value="ambos">Ambos</option>
+            </select>
+
+            <button type="submit">Registrarse</button>
+        </form>
+        <div id="resultado" class="hidden">
+            <h2>Registro exitoso</h2>
+            <p>Escanea o descarga tu código QR:</p>
+            <div id="qrcode"></div>
+            <button id="descargarQR">Descargar QR</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("registroForm");
+            const resultado = document.getElementById("resultado");
+            const qrContainer = document.getElementById("qrcode");
+            const descargarQR = document.getElementById("descargarQR");
+
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                const nombre = document.getElementById("nombre").value.trim();
+                const correo = document.getElementById("correo").value.trim();
+                const telefono = document.getElementById("telefono").value.trim();
+                const preferencia = document.getElementById("preferencia").value;
+
+                if (!validarFormulario(nombre, correo, telefono)) {
+                    alert("Por favor, revisa los datos ingresados.");
+                    return;
+                }
+
+                const idUnico = generarUUID();
+                const qrData = JSON.stringify({ id: idUnico, nombre });
+                qrContainer.innerHTML = "";
+                new QRCode(qrContainer, { text: qrData, width: 128, height: 128 });
+
+                localStorage.setItem(idUnico, qrData);
+                resultado.classList.remove("hidden");
+            });
+
+            descargarQR.addEventListener("click", () => {
+                const qrCanvas = qrContainer.querySelector("canvas");
+                if (qrCanvas) {
+                    const enlace = document.createElement("a");
+                    enlace.href = qrCanvas.toDataURL("image/png");
+                    enlace.download = "codigo_qr.png";
+                    enlace.click();
+                }
+            });
+        });
+
+        function validarFormulario(nombre, correo, telefono) {
+            const regexNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{3,}$/;
+            const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const regexTelefono = /^[0-9]{8,15}$/;
+            return regexNombre.test(nombre) && regexCorreo.test(correo) && regexTelefono.test(telefono);
+        }
+
+        function generarUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+                const r = (Math.random() * 16) | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+    </script>
+</body>
+</html>
